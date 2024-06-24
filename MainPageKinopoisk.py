@@ -1,4 +1,5 @@
 from typing import Tuple, List
+from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -9,13 +10,13 @@ import allure
 
 class Main:
 
-    def __init__(self, driver: str):
+    def __init__(self, driver: WebDriver):
         self._driver = driver
         self._driver.get("https://www.kinopoisk.ru")
         self._driver.implicitly_wait(4)
         self._driver.maximize_window()
 
-    @allure.step("Обрабатываем капчу, если она появляется")
+    @allure.step("Обрабатываем капчу, если она появляется.")
     def captcha(self):
         """
         Данный метод обрабатывает капчу.
@@ -31,9 +32,8 @@ class Main:
     def enter_search_info(self, info_to_search: str):
         """
         Данный метод вводит данные в поисковое поле.
-
         Args:
-            info_to_search (str): информация для поиска
+            info_to_search (str): информация для поиска.
         """
         search_field = self._driver.find_element(
             By.CSS_SELECTOR,
@@ -42,18 +42,16 @@ class Main:
         search_field.click()
         search_field.send_keys(info_to_search)
 
-    @allure.step("Получаем текст элементов в подсказках к поисковому полю")
-    def get_search_field_list(self, xpath: str) -> List[str]:
+    @allure.step("Получаем текст элементов в подсказках к поисковому полю.")
+    def get_search_field_list(self, selector: str) -> List[str]:
         """Данный метод собирает список элементов
         в подсказках к модулю поиска.
-
         Args:
-            xpath (str): полный путь к элементу в поле подсказок
-
+            selector (str): селектор веб элемента.
         Returns:
-            list: возвращает список элементов
+            list: возвращает список элементов.
         """
-        elements = self._driver.find_elements(By.XPATH, xpath)
+        elements = self._driver.find_elements(By.CSS_SELECTOR, selector)
         return [element.text for element in elements]
 
     @allure.step("Нажимаем кнопку поиска")
@@ -63,18 +61,16 @@ class Main:
         """
         self._driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
 
-    @allure.step("Ожидаем и возвращаем элемент на странице результата поиска")
+    @allure.step("Ожидаем и возвращаем элемент на странице результата поиска.")
     def get_element_from_search_result_page(
         self, css_selector: str
     ) -> Tuple[WebElement, str]:
         """Данный метод ожидает появление элемента на странице.
         Возвращает данный веб элемент и текст ссылки.
-
         Args:
-            css_selector (str): селектор элемента
-
+            css_selector (str): селектор элемента.
         Returns:
-            Tuple[WebElement, str]: веб элемент и текст ссылки
+            Tuple[WebElement, str]: веб элемент и текст ссылки.
         """
         element = WebDriverWait(self._driver, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, css_selector))
@@ -92,29 +88,21 @@ class Main:
         """Метод позволяет выполнить поиск фильма или сериала
         используя информацию полученную на вход.
         Открыть персональную карточку фильма или сериала.
-
         Args:
-            info_to_search (str): название фильма или сериала
-
+            info_to_search (str): название фильма или сериала.
         Returns:
-            str: возвращает название фильма или сериала из подсказки к поисковому полю, страницы результата поиска, персональной страницы фильма или сериала
+            str: возвращает название фильма или сериала из подсказки к поисковому полю, страницы результата поиска, персональной страницы фильма или сериала.
         """
         self.captcha()
-
         self.enter_search_info(info_to_search)
-
-        found_movie_titles = self.get_search_field_list(
-            "/html/body/div[1]/div[1]/div[1]/header/div/div[2]/div[2]/div/div/div/div[2]/div/div[1]/ul/li/article/div[1]/div[2]/h4/a"
-        )
-
+        found_movie_titles = self.get_search_field_list("[id^='suggest-item']")
         self.click_search_button()
-
         a_film_link, film_text_link = self.get_element_from_search_result_page(
             "div.element.most_wanted"
         )
         a_film_link.click()
 
-        with allure.step("На странице фильма или сериала получаем его название"):
+        with allure.step("На странице фильма или сериала получаем его название."):
             name_film_personal_page = WebDriverWait(self._driver, 10).until(
                 EC.visibility_of_element_located(
                     (By.CSS_SELECTOR, "h1[itemprop='name']")
@@ -122,7 +110,7 @@ class Main:
             )
 
         with allure.step(
-            "Возвращаем список с 1 фильмом или сериалом из подсказки к поисковому полю, название фильма или сериала на странице результата поиска, название с персональной страницы"
+            "Возвращаем список с 1 фильмом или сериалом из подсказки к поисковому полю, название фильма или сериала на странице результата поиска, название с персональной страницы."
         ):
             return (
                 found_movie_titles,
@@ -139,21 +127,14 @@ class Main:
         Отрыть личную карточку персоны.
 
         Args:
-            info_to_search (str): фамилия и имя персоны
-
+            info_to_search (str): фамилия и имя персоны.
         Returns:
-            str: возвращает список с 1 персоной из подсказки к поисковому полю, фамилию и имя персоны на странице результата поиска, фамилию и имя с личной страницы персоны
+            str: возвращает список с 1 персоной из подсказки к поисковому полю, фамилию и имя персоны на странице результата поиска, фамилию и имя с личной страницы персоны.
         """
         self.captcha()
-
         self.enter_search_info(info_to_search)
-
-        found_person_titles = self.get_search_field_list(
-            "/html/body/div[1]/div[1]/div[1]/header/div/div[2]/div[2]/div/div/div/div[2]/div/div[1]/ul/li/article/div/div[2]/h4/a"
-        )
-
+        found_person_titles = self.get_search_field_list("[id^='suggest-item-person']")
         self.click_search_button()
-
         a_person_link, person_text_link = self.get_element_from_search_result_page(
             "div.element.most_wanted"
         )
@@ -163,14 +144,14 @@ class Main:
             name_surname_person_private_page = WebDriverWait(self._driver, 10).until(
                 EC.visibility_of_element_located(
                     (
-                        By.XPATH,
-                        "/html/body/div[1]/div[1]/div[2]/div[2]/div/div/div[3]/div/div/div[1]/div/div/h1",
+                        By.CSS_SELECTOR,
+                        "[class^='styles_primaryName']",
                     )
                 )
             )
 
         with allure.step(
-            "Возвращаем список с 1 персоной из подсказки к поисковому полю, фамилию и имя персоны на странице результата поиска, фамилию и имя с личной страницы персоны"
+            "Возвращаем список с 1 персоной из подсказки к поисковому полю, фамилию и имя персоны на странице результата поиска, фамилию и имя с личной страницы персоны."
         ):
             return (
                 found_person_titles,
@@ -184,22 +165,17 @@ class Main:
     def empty_search(self, info_to_search: str) -> str:
         """Метод позволяет выполнить поиск по несуществующему названию
         и проверить корректность выдачи информационного сообщения.
-
         Args:
-            info_to_search (str): введите несуществующее название
-
+            info_to_search (str): введите несуществующее название.
         Returns:
-            str: текст информационного сообщения
+            str: текст информационного сообщения.
         """
         self.captcha()
-
         self.enter_search_info(info_to_search)
-
         self.click_search_button()
 
-        with allure.step("Считываем текст информационного сообщения и возвращаем его"):
+        with allure.step("Считываем текст информационного сообщения и возвращаем его."):
             message_empty_result = self._driver.find_element(
-                By.XPATH,
-                "/html/body/main/div[4]/div[1]/table/tbody/tr/td[1]/div/table/tbody/tr[1]/td/h2",
+                By.CSS_SELECTOR, "h2.textorangebig"
             ).text
             return message_empty_result

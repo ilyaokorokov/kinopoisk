@@ -5,11 +5,29 @@ from AuthPageKinopoisk import Auth
 from MainPageKinopoisk import Main
 from FilmSeriesPageKinopoisk import PersonalPage
 import allure
+import pytest
 
-driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
-auth_page = Auth(driver)
-main_page = Main(driver)
-personal_page = PersonalPage(driver)
+
+@pytest.fixture(scope="module")
+def browser():
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+    yield driver
+    driver.quit()
+
+
+@pytest.fixture
+def auth_page(browser):
+    return Auth(browser)
+
+
+@pytest.fixture
+def main_page(browser):
+    return Main(browser)
+
+
+@pytest.fixture
+def personal_page(browser):
+    return PersonalPage(browser)
 
 
 # @allure.feature("Авторизация на сайте.")
@@ -17,7 +35,7 @@ personal_page = PersonalPage(driver)
 # @allure.description("Авторизуемся на сайте используя входные данные.")
 # @allure.id(1)
 # @allure.severity("Blocker")
-# def test_auth():
+# def test_auth(auth_page):
 #     auth_page.user_auth("testk1no@yandex.ru", "testk1n00")
 #     with allure.step(
 #         "Проверяем вернулись ли мы на главную страницу после авторизации."
@@ -25,7 +43,6 @@ personal_page = PersonalPage(driver)
 #         expected_url = "https://www.kinopoisk.ru/"
 #         actual_url = auth_page._driver.current_url
 #         assert actual_url.startswith(expected_url)
-#     auth_page._driver.quit()
 
 
 # @allure.feature("Модуль поиска.")
@@ -33,7 +50,7 @@ personal_page = PersonalPage(driver)
 # @allure.description("Выполняем поиск фильма или сериала согласно полученным данным.")
 # @allure.id(2)
 # @allure.severity("Blocker")
-# def test_search_film_tv_series():
+# def test_search_film_tv_series(main_page):
 #     film_tv_series = "Гарри Поттер"
 #     film_name_search_list, film_name_result_search, film_name_personal_page = (
 #         main_page.search_film_or_tv_series(film_tv_series)
@@ -44,7 +61,6 @@ personal_page = PersonalPage(driver)
 #         assert film_tv_series in film_name_search_list[0]
 #         assert film_name_result_search.startswith(film_tv_series)
 #         assert film_name_personal_page.startswith(film_tv_series)
-#     main_page._driver.quit()
 
 
 # @allure.feature("Модуль поиска.")
@@ -52,7 +68,7 @@ personal_page = PersonalPage(driver)
 # @allure.description("Выполняем поиск персоны согласно полученным данным.")
 # @allure.id(3)
 # @allure.severity("Blocker")
-# def test_search_person():
+# def test_search_person(main_page):
 #     person_info = "Александр Петров"
 #     person_info_search_list, person_info_result_search, person_info_private_page = (
 #         main_page.search_person(person_info)
@@ -63,7 +79,6 @@ personal_page = PersonalPage(driver)
 #         assert person_info in person_info_search_list[0]
 #         assert person_info_result_search == person_info
 #         assert person_info_private_page == person_info
-#     main_page._driver.quit()
 
 
 # @allure.feature("Модуль поиска.")
@@ -73,7 +88,7 @@ personal_page = PersonalPage(driver)
 # )
 # @allure.id(4)
 # @allure.severity("Normal")
-# def test_empty_search_info_message():
+# def test_empty_search_info_message(main_page):
 #     search_info = "no book such term"
 #     message = "К сожалению, по вашему запросу ничего не найдено..."
 #     get_message = main_page.empty_search(search_info)
@@ -90,28 +105,20 @@ personal_page = PersonalPage(driver)
 )
 @allure.id(5)
 @allure.severity("Blocker")
-def test_set_rating_for_film_or_tv_series():
+def test_set_rating_for_film_or_tv_series(auth_page, main_page, personal_page):
     auth_page.user_auth("testk1no@yandex.ru", "testk1n00")
-    film_tv_series = "Отчаянные домохозяйки"
+    film_tv_series = "Артур, ты король"
     film_name_search_list, film_name_result_search, film_name_personal_page = (
         main_page.search_film_or_tv_series(film_tv_series)
     )
     first_value = 3
     second_value = 10
     button_text = "Оценить фильм"
-    new_rating = personal_page.set_rating(first_value)
-    with allure.step("Проверяем, что переданная оценка соответствует установленной."):
-        assert str(first_value) in new_rating
-    changed_rating = personal_page.change_rating(second_value)
-    with allure.step(
-        "Проверяем, что оценка была именена согласно переданному значению."
-    ):
-        assert str(second_value) in changed_rating
+    personal_page.set_rating(first_value)
+    control_first = personal_page.control_vote()
+    assert str(first_value) == control_first
+    personal_page.change_rating(second_value)
+    control_second = personal_page.control_vote()
+    assert str(second_value) == control_second
     deleted_rating_button_text = personal_page.delete_rating()
-    with allure.step(
-        "Проверяем, что оценка была удалена, текст на кнопке сверяем с шаблоном {button_text}."
-    ):
-        assert deleted_rating_button_text == button_text
-    auth_page._driver.quit()
-    main_page._driver.quit()
-    personal_page._driver.quit()
+    assert deleted_rating_button_text == button_text

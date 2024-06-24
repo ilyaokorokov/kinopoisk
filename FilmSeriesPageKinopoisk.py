@@ -1,4 +1,6 @@
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import allure
@@ -6,135 +8,150 @@ import allure
 
 class PersonalPage:
 
-    def __init__(self, driver: str):
+    def __init__(self, driver: WebDriver):
         self._driver = driver
         self._driver.get("https://www.kinopoisk.ru")
-        self._driver.implicitly_wait(10)
+        self._driver.implicitly_wait(4)
         self._driver.maximize_window()
 
-    def find_element_and_click(self, xpath: str):
+    def find_element_and_click(self, css_selector: str):
         """
         Данный метод находит элемент на странице по его
-        XPATH и нажимает на элемент.
-
+        селектору и нажимает на элемент.
         Args:
-            xpath (str): полный путь к элементу
+            css_selector (str): css_selector элемента.
         """
         element = WebDriverWait(self._driver, 10).until(
-            EC.element_to_be_clickable((By.XPATH, xpath))
+            EC.element_to_be_clickable((By.CSS_SELECTOR, css_selector))
         )
         element.click()
 
-    def find_element_and_return_text(self, xpath: str) -> str:
+    def find_element_and_return_text(
+        self, element: WebElement, css_selector: str
+    ) -> str:
         """
-        Данный метод находит элемент на странице по его XPATH
+        Данный метод находит элемент на странице по его селектору
         и возращает текст данного элемента.
-
         Args:
-            xpath (str): полный путь к элементу
-
+            element: WebElement.
+            css_selector (str): css_selector элемента.
         Returns:
-            str: текст элемента
+            str: текст элемента.
         """
-        element = WebDriverWait(self._driver, 10).until(
-            EC.visibility_of_element_located((By.XPATH, xpath))
+        element = WebDriverWait(element, 10).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector))
         )
         return element.text
 
-    @allure.step("Устанавливаем оценку фильму или сериалу. Оценка - {value}.")
-    def set_rating(self, value: int) -> str:
-        """Метод позволяет установить оценку фильму или сериалу.
+    # def find_button_by_text(self, button_text: str) -> WebElement:
+    #     """
+    #     Метод для поиска кнопки по тексту.
+    #     Args:
+    #         button_text (str): текст кнопки для поиска.
+    #     Returns:
+    #         WebElement: найденная кнопка.
+    #     """
+    #     buttons = WebDriverWait(self._driver, 10).until(
+    #         EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div[class^='style_buttonContent']"))
+    #     )
+    #     for button in buttons:
+    #         if button.text == button_text:
+    #             return button
 
-        Args:
-            value (int): укажите значение от 1 до 10
-
-        Returns:
-            str: возвращает значение установленной оценки
+    def find_button_actions_by_text(self, button_text: str) -> WebElement:
         """
-
-        with allure.step("На странице нажать кнопку 'Оценить фильм/сериал'"):
-            self.find_element_and_click(
-                "/html/body/div[1]/div[1]/div[2]/div[2]/div[2]/div/div[3]/div/div/div[1]/div[2]/div/div[2]/div/button"
+        Метод для поиска кнопки по тексту.
+        Args:
+            button_text (str): текст кнопки для поиска.
+        Returns:
+            WebElement: найденная кнопка.
+        """
+        buttons = WebDriverWait(self._driver, 10).until(
+            EC.presence_of_all_elements_located(
+                (By.CSS_SELECTOR, "button[class^='style_root']")
             )
+        )
+        for button in buttons:
+            if button.text == button_text:
+                return button
 
-        with allure.step("Установить оценку согласно переданному значению"):
-            div_rating = WebDriverWait(self._driver, 10).until(
-                EC.visibility_of_element_located(
-                    (
-                        By.XPATH,
-                        "/html/body/div[1]/div[1]/div[2]/div[2]/div[2]/div/div[3]/div/div/div[1]/div[2]/div/div[2]/div/div/div",
-                    )
+    @allure.step("Проверяем устновку оценки.")
+    def control_vote(self) -> str:
+        """
+        Метод считывает установленную фильму или сериалу оценку.
+        Returns:
+            str: установленная оценка.
+        """
+        with allure.step(
+            "Проверяем какая оценка отображается на странице и возвращаем её значение."
+        ):
+            div_with_vote = WebDriverWait(self._driver, 10).until(
+                EC.presence_of_element_located(
+                    (By.CSS_SELECTOR, "div[class^='styles_valueContainer']")
                 )
             )
-            rating_buttons_text = div_rating.find_elements(By.CSS_SELECTOR, "span")
-            for element in rating_buttons_text:
-                if str(value) in element.text:
-                    element.click()
-
-        with allure.step("Считывает установленную оценку и возвращаем это значение"):
-            self._driver.refresh()
-            rating = self.find_element_and_return_text(
-                "/html/body/div[1]/div[1]/div[2]/div[3]/div/div/div[1]/div/div[2]/div/div/div[3]/div/div/div[1]/div[1]/div/div[1]/span"
+            return self.find_element_and_return_text(
+                div_with_vote, "span[class^='styles']"
             )
-            return rating
+
+    @allure.step("Устанавливаем оценку фильму или сериалу. Оценка - {value}.")
+    def set_rating(self, value: int):
+        """Метод позволяет установить оценку фильму или сериалу.
+        Args:
+            value (int): укажите значение от 1 до 10.
+        """
+        with allure.step("На странице нажать кнопку 'Оценить фильм/сериал'"):
+            self.find_element_and_click("[class^='styles_kinopoiskRatingSnippet']")
+
+        with allure.step("Установить оценку согласно переданному значению"):
+            rating_button_selector = f"button[aria-label='Оценка {value}']"
+            self.find_element_and_click(rating_button_selector)
 
     @allure.step(
         "Изменяем ранее установленную оценку фильму или сериалу. Новая оценка - {new_value}."
     )
-    def change_rating(self, new_value: int) -> str:
+    def change_rating(self, new_value: int):
         """Метод позволяет изменить оценку фильму или сериалу.
-
         Args:
-            value (int): укажите новое значение оценки от 1 до 10
-
-        Returns:
-            str: возвращает значение новой установленной оценки
+            value (int): укажите новое значение оценки от 1 до 10.
         """
-
         with allure.step("На странице нажать кнопку 'Изменить оценку'"):
-            self._find_element_and_click(
-                "/html/body/div[1]/div[1]/div[2]/div[2]/div[2]/div/div[3]/div/div/div[1]/div[2]/div/div[2]/div/div/div/button"
-            )
-            self._find_element_and_click(
-                "/html/body/div[1]/div[1]/div[2]/div[2]/div[2]/div/div[3]/div/div/div[1]/div[2]/div/div[2]/div/div/div[2]/div/button[1]"
-            )
+            self.find_element_and_click("[class^='styles_kinopoiskRatingSnippet']")
+            self.find_button_actions_by_text("Изменить оценку").click()
 
         with allure.step("Установить оценку согласно новому переданному значению"):
-            div_rating = self._driver.find_element(
-                By.XPATH,
-                "/html/body/div[1]/div[1]/div[2]/div[2]/div[2]/div/div[3]/div/div/div[1]/div[2]/div/div[2]/div/div/div",
-            )
-            rating_buttons_text = div_rating.find_elements(By.CSS_SELECTOR, "span")
-            for element in rating_buttons_text:
-                if str(new_value) in element.text:
-                    element.click()
-
-        with allure.step("Считывает установленную оценку и возвращаем это значение"):
-            new_rating = self._find_element_and_return_text(
-                "/html/body/div[1]/div[1]/div[2]/div[2]/div[2]/div/div[3]/div/div/div[1]/div[2]/div/div[2]/div/div/div/button/div/span[2]/span[2]"
-            )
-            return new_rating
+            rating_button_selector = f"button[aria-label='Оценка {new_value}']"
+            self.find_element_and_click(rating_button_selector)
 
     @allure.step("Удаляем ранее установленную оценку фильму или сериалу.")
-    def delete_rating(self) -> str:
+    def delete_rating(self):
         """
         Метод позволяет удалить оценку фильму или сериалу.
-
-        Returns:
-            str: текст кнопки без установленной оценки
         """
-
         with allure.step(
             "На странице фильма или сериала нажать кнопку 'Изменить оценку', затем нажать 'Удалить оценку'"
         ):
-            self._find_element_and_click(
-                "/html/body/div[1]/div[1]/div[2]/div[2]/div[2]/div/div[3]/div/div/div[1]/div[2]/div/div[2]/div/div/div/button"
+            div = self._driver.find_element(
+                By.CSS_SELECTOR, "[class^='styles_kinopoiskRatingSnippet']"
             )
-            self._find_element_and_click(
-                "/html/body/div[1]/div[1]/div[2]/div[2]/div[2]/div/div[3]/div/div/div[1]/div[2]/div/div[2]/div/div/div[2]/div/button[2]"
+            div.click()
+            self.find_button_actions_by_text("Удалить оценку").click()
+            result = self.find_element_and_return_text(div, "button")
+            return result
+
+    @allure.step("Добавляем фильм или сериал в необходимую папку.")
+    def add_film_to_folder(self, folder_to_add: str):
+        """Метод позволяет добавить фильм или сериали в необходимую папку.
+        Args:
+            folder_to_add (str): название папки, в которую необходимо добавить фильм.
+        """
+        with allure.step(
+            "На странице фильма, нажимаем на кнопку 'Добавить в папку', затем добавляем в необходимую папку."
+        ):
+            self.find_element_and_click("button[title='Добавить в папку']")
+            folder_buttons = self._driver.find_elements(
+                By.CSS_SELECTOR, "span[class^='styles_name']"
             )
-            set_rating_button = self._driver.find_element(
-                By.XPATH,
-                "/html/body/div[1]/div[1]/div[2]/div[2]/div[2]/div/div[3]/div/div/div[1]/div[2]/div/div[2]/div/button",
-            )
-            return set_rating_button.text
+            for button in folder_buttons:
+                if button.text == folder_to_add:
+                    button.click()

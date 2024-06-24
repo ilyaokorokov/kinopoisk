@@ -1,4 +1,5 @@
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
@@ -7,7 +8,7 @@ import allure
 
 class Auth:
 
-    def __init__(self, driver: str):
+    def __init__(self, driver: WebDriver):
         self._driver = driver
         self._driver.get("https://www.kinopoisk.ru")
         self._driver.implicitly_wait(4)
@@ -21,11 +22,11 @@ class Auth:
         на сайте, используя полученные входные данные.
 
         Args:
-            login (str): адрес электронной почты
-            password (str): пароль
+            login (str): адрес электронной почты.
+            password (str): пароль.
         """
         with allure.step(
-            "Если появляется капча пытаемся её нажать, иначе продолжаем следующие шаги"
+            "Если появляется капча пытаемся её нажать, иначе продолжаем следующие шаги."
         ):
             try:
                 self._driver.find_element(
@@ -34,18 +35,18 @@ class Auth:
             except NoSuchElementException:
                 pass
 
-        with allure.step("Нажимаем кнопку 'Войти' на главной странице сайта"):
+        with allure.step("Нажимаем кнопку 'Войти' на главной странице сайта."):
             self._driver.find_element(
                 By.CSS_SELECTOR, ".styles_loginButton__LWZQp"
             ).click()
 
-        with allure.step("Вводим адрес электронной почты (логин)"):
+        with allure.step("Вводим адрес электронной почты (логин)."):
             self._driver.find_element(By.CSS_SELECTOR, "#passp-field-login").send_keys(
                 login
             )
 
         with allure.step(
-            "Нажимаем кнопку 'Войти', на странице ввода логина пользователя"
+            "Нажимаем кнопку 'Войти', на странице ввода логина пользователя."
         ):
             self._driver.find_element(
                 By.CSS_SELECTOR, ".passp-button.passp-sign-in-button"
@@ -57,13 +58,13 @@ class Auth:
             )
 
         with allure.step(
-            "Нажимаем кнопку 'Войти', на странице ввода пароля пользователя"
+            "Нажимаем кнопку 'Войти', на странице ввода пароля пользователя."
         ):
             self._driver.find_element(
                 By.CSS_SELECTOR, ".passp-button.passp-sign-in-button"
             ).click()
 
-        with allure.step("Ожидаем возвращения на главную страницу сайта"):
-            WebDriverWait(self._driver, 3).until(
+        with allure.step("Ожидаем возвращения на главную страницу сайта."):
+            WebDriverWait(self._driver, 5).until(
                 EC.url_contains("https://www.kinopoisk.ru/")
             )
