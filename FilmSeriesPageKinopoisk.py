@@ -58,9 +58,9 @@ class PersonalPage:
     #         if button.text == button_text:
     #             return button
 
-    def find_button_actions_by_text(self, button_text: str) -> WebElement:
+    def find_button_change_delete_by_text(self, button_text: str) -> WebElement:
         """
-        Метод для поиска кнопки по тексту.
+        Метод для поиска кнопки по тексту. Две подкнопки 'Изменить оценку' и 'Удалить оценку'.
         Args:
             button_text (str): текст кнопки для поиска.
         Returns:
@@ -75,24 +75,21 @@ class PersonalPage:
             if button.text == button_text:
                 return button
 
-    @allure.step("Проверяем устновку оценки.")
+    @allure.step(
+        "Проверяем какая оценка отображается на странице и возвращаем её значение."
+    )
     def control_vote(self) -> str:
         """
         Метод считывает установленную фильму или сериалу оценку.
         Returns:
             str: установленная оценка.
         """
-        with allure.step(
-            "Проверяем какая оценка отображается на странице и возвращаем её значение."
-        ):
-            div_with_vote = WebDriverWait(self._driver, 10).until(
-                EC.presence_of_element_located(
-                    (By.CSS_SELECTOR, "div[class^='styles_valueContainer']")
-                )
+        div_with_vote = WebDriverWait(self._driver, 10).until(
+            EC.presence_of_element_located(
+                (By.CSS_SELECTOR, "div[class^='styles_valueContainer']")
             )
-            return self.find_element_and_return_text(
-                div_with_vote, "span[class^='styles']"
-            )
+        )
+        return self.find_element_and_return_text(div_with_vote, "span[class^='styles']")
 
     @allure.step("Устанавливаем оценку фильму или сериалу. Оценка - {value}.")
     def set_rating(self, value: int):
@@ -117,41 +114,40 @@ class PersonalPage:
         """
         with allure.step("На странице нажать кнопку 'Изменить оценку'"):
             self.find_element_and_click("[class^='styles_kinopoiskRatingSnippet']")
-            self.find_button_actions_by_text("Изменить оценку").click()
+            self.find_button_change_delete_by_text("Изменить оценку").click()
 
         with allure.step("Установить оценку согласно новому переданному значению"):
             rating_button_selector = f"button[aria-label='Оценка {new_value}']"
             self.find_element_and_click(rating_button_selector)
 
-    @allure.step("Удаляем ранее установленную оценку фильму или сериалу.")
+    @allure.step(
+        "Удаляем ранее установленную оценку фильму или сериалу. Нажать кнопку 'Изменить оценку', затем нажать 'Удалить оценку'"
+    )
     def delete_rating(self):
         """
         Метод позволяет удалить оценку фильму или сериалу.
         """
-        with allure.step(
-            "На странице фильма или сериала нажать кнопку 'Изменить оценку', затем нажать 'Удалить оценку'"
-        ):
-            div = self._driver.find_element(
-                By.CSS_SELECTOR, "[class^='styles_kinopoiskRatingSnippet']"
-            )
-            div.click()
-            self.find_button_actions_by_text("Удалить оценку").click()
-            result = self.find_element_and_return_text(div, "button")
-            return result
+        div = self._driver.find_element(
+            By.CSS_SELECTOR, "[class^='styles_kinopoiskRatingSnippet']"
+        )
+        div.click()
+        self.find_button_change_delete_by_text("Удалить оценку").click()
+        result = self.find_element_and_return_text(div, "button")
+        return result
 
-    @allure.step("Добавляем фильм или сериал в необходимую папку.")
-    def add_film_to_folder(self, folder_to_add: str):
-        """Метод позволяет добавить фильм или сериали в необходимую папку.
+    @allure.step(
+        "Добавляем фильм или сериал в необходимую папку. На странице фильма нажимаем 'Добавить в папку', затем добавляем в необходимую папку."
+    )
+    def add_film_or_person_to_folder(self, folder_to_add: str):
+        """Метод позволяет добавить фильм, сериал или персону в необходимую папку.
         Args:
-            folder_to_add (str): название папки, в которую необходимо добавить фильм.
+            folder_to_add (str): название папки, в которую необходимо добавить фильм, сериал или персону.
         """
-        with allure.step(
-            "На странице фильма, нажимаем на кнопку 'Добавить в папку', затем добавляем в необходимую папку."
-        ):
-            self.find_element_and_click("button[title='Добавить в папку']")
-            folder_buttons = self._driver.find_elements(
-                By.CSS_SELECTOR, "span[class^='styles_name']"
-            )
-            for button in folder_buttons:
-                if button.text == folder_to_add:
-                    button.click()
+        self.find_element_and_click("button[title='Добавить в папку']")
+        folder_buttons = self._driver.find_elements(
+            By.CSS_SELECTOR, "span[class^='styles_name']"
+        )
+        for button in folder_buttons:
+            if button.text == folder_to_add:
+                button.click()
+                break

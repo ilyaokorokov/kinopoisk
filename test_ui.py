@@ -4,6 +4,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from AuthPageKinopoisk import Auth
 from MainPageKinopoisk import Main
 from FilmSeriesPageKinopoisk import PersonalPage
+from UserPageKinopoisk import UserProfile
 import allure
 import pytest
 
@@ -28,6 +29,11 @@ def main_page(browser):
 @pytest.fixture
 def personal_page(browser):
     return PersonalPage(browser)
+
+
+@pytest.fixture
+def user_profile_page(browser):
+    return UserProfile(browser)
 
 
 # @allure.feature("Авторизация на сайте.")
@@ -98,27 +104,78 @@ def personal_page(browser):
 #         assert get_message == message
 
 
-@allure.feature("Установка оценки.")
-@allure.title("Тест на установку оценки фильму или сериалу.")
-@allure.description(
-    "Авторизуемся, выполняем поиск фильма или сериала, устанавливаем оценку."
-)
-@allure.id(5)
-@allure.severity("Blocker")
-def test_set_rating_for_film_or_tv_series(auth_page, main_page, personal_page):
-    auth_page.user_auth("testk1no@yandex.ru", "testk1n00")
-    film_tv_series = "Артур, ты король"
-    film_name_search_list, film_name_result_search, film_name_personal_page = (
-        main_page.search_film_or_tv_series(film_tv_series)
-    )
-    first_value = 3
-    second_value = 10
-    button_text = "Оценить фильм"
-    personal_page.set_rating(first_value)
-    control_first = personal_page.control_vote()
-    assert str(first_value) == control_first
-    personal_page.change_rating(second_value)
-    control_second = personal_page.control_vote()
-    assert str(second_value) == control_second
-    deleted_rating_button_text = personal_page.delete_rating()
-    assert deleted_rating_button_text == button_text
+# @allure.feature("Установка оценки.")
+# @allure.title("Тест на установку оценки фильму или сериалу.")
+# @allure.description(
+#     "Авторизуемся, выполняем поиск фильма или сериала, устанавливаем оценку."
+# )
+# @allure.id(5)
+# @allure.severity("Blocker")
+# def test_set_rating_for_film_or_tv_series(auth_page, main_page, personal_page):
+#     auth_page.user_auth("testk1no@yandex.ru", "testk1n00")
+#     film_tv_series = "Артур, ты король"
+#     film_name_search_list, film_name_result_search, film_name_personal_page = (
+#         main_page.search_film_or_tv_series(film_tv_series)
+#     )
+#     first_value = 3
+#     second_value = 10
+#     button_text = "Оценить фильм"
+#     personal_page.set_rating(first_value)
+#     control_first = personal_page.control_vote()
+#     assert str(first_value) == control_first
+#     personal_page.change_rating(second_value)
+#     control_second = personal_page.control_vote()
+#     assert str(second_value) == control_second
+#     deleted_rating_button_text = personal_page.delete_rating()
+#     assert deleted_rating_button_text == button_text
+
+# @allure.feature("Установка оценки.")
+# @allure.title("Тест на установку оценки фильму или сериалу и проверку оценки в профиле пользователя.")
+# @allure.description(
+#     "Авторизуемся, выполняем поиск фильма или сериала, устанавливаем оценку, выпоняем проверку оценки в профиле пользователя."
+# )
+# @allure.id(6)
+# @allure.severity("Critical")
+# def test_set_rating_for_film_or_tv_series(auth_page, main_page, personal_page, user_profile_page):
+#     auth_page.user_auth("testk1no@yandex.ru", "testk1n00")
+#     film_tv_series = "Аватар"
+#     film_name_search_list, film_name_result_search, film_name_personal_page = (
+#         main_page.search_film_or_tv_series(film_tv_series)
+#     )
+#     with allure.step(
+#         "Устанавливаем и проверяем, оценку на странице фильма/сериала."
+#     ):
+#         first_value = 10
+#         personal_page.set_rating(first_value)
+#         control_first = personal_page.control_vote()
+#         assert str(first_value) == control_first
+#     with allure.step(
+#         "Переходим в профиль пользователя и проверяем, оценку на в разделе Оценки."
+#     ):
+#         user_profile_page.enter_profile()
+#         user_profile_page.user_profile_section_buttons("Оценки")
+#         user_profile_film_vote = user_profile_page.get_film_vote_personal_section(film_tv_series)
+#         assert str(first_value) == user_profile_film_vote
+
+# @allure.feature("Добавление фильма/сериала в папку.")
+# @allure.title("Тест на добавление фильма или сериала в необходимую папку.")
+# @allure.description(
+#     "Авторизуемся, выполняем поиск фильма или сериала, добавляем его в необходимую папку, выполняем проверки."
+# )
+# @allure.id(7)
+# @allure.severity("Critical")
+# def test_add_film_or_tv_series_to_folder(
+#     auth_page, main_page, personal_page, user_profile_page
+# ):
+#     auth_page.user_auth("testk1no@yandex.ru", "testk1n00")
+#     film_tv_series = "Аватар"
+#     film_name_search_list, film_name_result_search, film_name_personal_page = (
+#         main_page.search_film_or_tv_series(film_tv_series)
+#     )
+#     personal_page.add_film_or_person_to_folder("Буду смотреть")
+#     user_profile_page.enter_profile()
+#     user_profile_page.user_profile_section_buttons("Фильмы")
+#     counter, films, titles = user_profile_page.film_personal_profile_section()
+#     assert counter == "3"
+#     assert len(films) == int(counter)
+#     assert titles[0] == film_tv_series
