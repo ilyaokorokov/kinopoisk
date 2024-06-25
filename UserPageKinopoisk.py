@@ -84,12 +84,12 @@ class UserProfile:
         Returns:
             str: возвращает оценку фильма
         """
-        with allure.step("Ожидание загрузки списка фильмов и оценок"):
+        with allure.step("Ожиданием загрузки полного списка фильмов и их оценок."):
             div_films = WebDriverWait(self._driver, 10).until(
                 EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.item"))
             )
 
-        with allure.step("Поиск нужного фильма и получение его оценки"):
+        with allure.step("Поиск нужного фильма и получение его оценки."):
             for div in div_films:
                 film_title_element = WebDriverWait(div, 10).until(
                     EC.visibility_of_element_located(

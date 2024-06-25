@@ -1,10 +1,4 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromeService
-from webdriver_manager.chrome import ChromeDriverManager
-from AuthPageKinopoisk import Auth
-from MainPageKinopoisk import Main
-from FilmSeriesPageKinopoisk import PersonalPage
-import allure
+import requests
 
 driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
 auth_page = Auth(driver)
