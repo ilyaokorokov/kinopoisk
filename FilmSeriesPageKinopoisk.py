@@ -43,21 +43,6 @@ class PersonalPage:
         )
         return element.text
 
-    # def find_button_by_text(self, button_text: str) -> WebElement:
-    #     """
-    #     Метод для поиска кнопки по тексту.
-    #     Args:
-    #         button_text (str): текст кнопки для поиска.
-    #     Returns:
-    #         WebElement: найденная кнопка.
-    #     """
-    #     buttons = WebDriverWait(self._driver, 10).until(
-    #         EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div[class^='style_buttonContent']"))
-    #     )
-    #     for button in buttons:
-    #         if button.text == button_text:
-    #             return button
-
     def find_button_change_delete_by_text(self, button_text: str) -> WebElement:
         """
         Метод для поиска кнопки по тексту. Две подкнопки 'Изменить оценку' и 'Удалить оценку'.
@@ -131,15 +116,23 @@ class PersonalPage:
             By.CSS_SELECTOR, "[class^='styles_kinopoiskRatingSnippet']"
         )
         div.click()
-        self.find_button_change_delete_by_text("Удалить оценку").click()
-        result = self.find_element_and_return_text(div, "button")
+        delete_button = self.find_button_change_delete_by_text("Удалить оценку")
+        delete_button.click()
+        self._driver.refresh()
+        div1 = self._driver.find_element(
+            By.CSS_SELECTOR, "[class^='styles_kinopoiskRatingSnippet']"
+        )
+        result = self.find_element_and_return_text(
+            div1, "button[class^='style_button']"
+        )
+
         return result
 
     @allure.step(
         "Добавляем фильм или сериал в необходимую папку. На странице фильма нажимаем 'Добавить в папку', затем добавляем в необходимую папку."
     )
     def add_film_or_person_to_folder(self, folder_to_add: str):
-        """Метод позволяет добавить фильм, сериал или персону в необходимую папку.
+        """Метод позволяет добавить фильм, сериал или персону в необходимую папку (повторное использование удаляет из папки).
         Args:
             folder_to_add (str): название папки, в которую необходимо добавить фильм, сериал или персону.
         """
