@@ -10,9 +10,6 @@ class PersonalPage:
 
     def __init__(self, driver: WebDriver):
         self._driver = driver
-        self._driver.get("https://www.kinopoisk.ru")
-        self._driver.implicitly_wait(4)
-        self._driver.maximize_window()
 
     def find_element_and_click(self, css_selector: str):
         """

@@ -1,47 +1,4 @@
-from FilmTvSeriesApi import FilmTvSeriesApi
-from PersonApi import PersonApi
 import allure
-import pytest
-import json
-
-with open("config.json", "r") as config_file:
-    config = json.load(config_file)
-
-base_url_api = config.get("base_url_api")
-token_info = config.get("token_info")
-
-
-@pytest.fixture
-def api():
-    return FilmTvSeriesApi(base_url_api)
-
-
-@pytest.fixture
-def person_api():
-    return PersonApi(base_url_api)
-
-
-@pytest.fixture()
-def film_id(api):
-    film_tv_series = "Аватар"
-    result_search_by_name, status_code = api.search_film_tv_series_by_name(
-        film_tv_series
-    )
-    assert status_code == 200
-    assert result_search_by_name["docs"][0]["name"] == "Аватар"
-    print(result_search_by_name["docs"][0]["id"])
-    return result_search_by_name["docs"][0]["id"]
-
-
-@pytest.fixture()
-def person_id(person_api):
-    person_name = "Леонардо ДиКаприо"
-    result_search_person_by_name, status_code = person_api.search_person_by_name(
-        person_name
-    )
-    assert status_code == 200
-    print(result_search_person_by_name["docs"][0]["id"])
-    return result_search_person_by_name["docs"][0]["id"]
 
 
 @allure.feature("Поиск фильма/сериала.")
