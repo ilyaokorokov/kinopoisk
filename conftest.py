@@ -1,12 +1,12 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
-from AuthPageKinopoisk import Auth
-from MainPageKinopoisk import Main
-from FilmSeriesPageKinopoisk import PersonalPage
-from UserPageKinopoisk import UserProfile
-from FilmTvSeriesApi import FilmTvSeriesApi
-from PersonApi import PersonApi
+from pages.AuthPageKinopoiskAuthPageKinopoisk import Auth
+from pages.MainPageKinopoisk import Main
+from pages.FilmSeriesPageKinopoisk import PersonalPage
+from pages.UserPageKinopoisk import UserProfile
+from api.FilmTvSeriesApi import FilmTvSeriesApi
+from api.PersonApi import PersonApi
 import pytest
 import json
 
